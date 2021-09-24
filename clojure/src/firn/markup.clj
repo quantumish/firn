@@ -453,11 +453,29 @@
 ;;  :name monoblock, :pre_blank 0, :post_blank 0,
 ;;  :children [{:type paragraph, :post_blank 0, :children [{:type text, :value hello}]}]}
 ;;
+(defn render-admonition-block "Haha not generalizable code goes brrrr"
+  [title content color icon]
+  [:div {:class "admonition" :style (str "--admonition-color: " color ";")}
+          [:div {:class "admonition-title"}
+           [:div {:class "admonition-title-content"} 
+            [:div {:class "admonition-title-icon"}
+             [:i {:class (str "fas " icon)}]]
+           [:div {:class "admonition-title-markdown"} title ]]]
+          [:div {:class "admonition-content-holder"}
+           [:div {:class "admonition-content"}
+            content]]])
+  
+
 (defn- special-block->html
   "Formats a org-mode special block."
   [{:keys [parameters name children language _arguments] :as _special-block} opts]
   (let [rec #(map (fn [child] (to-html child opts)) %)]
-    [:div {:class name} (rec children)]))
+    (case name
+      "defn" (render-admonition-block (str "Definition: " parameters) (rec children) "0, 176, 255" "fa-book")
+      "aside" (render-admonition-block (str "Aside: " parameters) (rec children) "150, 150, 150" "fa-ellipsis-h")
+      "note" (render-admonition-block (str "Note: " parameters) (rec children) "150, 150, 150" "fa-info-circle")
+      "problem" (render-admonition-block "Problem" (rec children) "138, 212, 187" "fa-question-circle")
+      nil)))
 
 (defn img-link->figure
   "Renders an image with a figure if the link has a :desc, otherwise, :img"
